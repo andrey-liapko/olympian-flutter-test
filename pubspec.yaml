@@ -4,7 +4,7 @@ description: A new Flutter project.
 version: 2.5.5+90
 
 environment:
-  sdk: '>=3.0.3 <4.0.0'
+  sdk: ">=3.0.3 <4.0.0"
 
 dependencies:
   flutter:
@@ -34,6 +34,8 @@ dependencies:
   amplitude_flutter: ^3.14.0
   device_info_plus: ^9.0.1
   onesignal_flutter: ^5.1.0
+  lottie: ^3.1.0
+  flutter_hooks: ^0.20.5
 
 dev_dependencies:
   flutter_test:
@@ -41,11 +43,11 @@ dev_dependencies:
 
   flutter_lints: ^2.0.1
 
-
 flutter:
   uses-material-design: true
   assets:
     - assets/images/
+    - assets/animations/
     - assets/fonts/
     - assets/audio/
     - assets/data/data.json
