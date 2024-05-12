@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-class AreaScreenProvider with ChangeNotifier {
-  bool _isWordsInteractive = true;
+class FingerAnimationProvider with ChangeNotifier {
+  bool _isFingerAnimationPlaying = true;
 
-  bool get isWordsInteractive => _isWordsInteractive;
+  bool get isFingerAnimationPlaying => _isFingerAnimationPlaying;
 
-  void set isWordsInteractive(bool value) {
-    _isWordsInteractive = value;
+  set isFingerAnimationPlaying(bool value) {
+    _isFingerAnimationPlaying = value;
     notifyListeners();
   }
 }

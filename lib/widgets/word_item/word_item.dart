@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:lottie/lottie.dart';
 import '../../screens/providers/area_screen_provider.dart';
 import '../../viewmodels/game_viewmodel.dart';
@@ -11,9 +10,6 @@ import '../shake.dart';
 import '../../utils/ext.dart';
 import '../../models/word_model.dart';
 import '../wrong_answer_dialog.dart';
-
-part 'finger_animation_provider.dart';
-part 'lottie_finger_animation.dart';
 
 // ignore: constant_identifier_names
 const ANIMATION_DURATION = 100;
@@ -42,8 +38,6 @@ class _WordItemState extends State<WordItem> with TickerProviderStateMixin {
   bool showLeftLeaf = false;
   final _shakeKey = GlobalKey<ShakeAnimationState>();
 
-  late final AnimationController _fingerAnimationController;
-
   @override
   void initState() {
     super.initState();
@@ -59,14 +53,11 @@ class _WordItemState extends State<WordItem> with TickerProviderStateMixin {
         context.read<GameViewModel>().clearActiveWord();
       }
     });
-
-    _fingerAnimationController = AnimationController(vsync: this);
   }
 
   @override
   void dispose() {
     _wordFocusNode.dispose();
-    _fingerAnimationController.dispose();
 
     super.dispose();
   }
@@ -99,127 +90,111 @@ class _WordItemState extends State<WordItem> with TickerProviderStateMixin {
     return ExcludeSemantics(
       child: ShakeAnimation(
         key: _shakeKey,
-        child: ChangeNotifierProvider<_FingerAnimationProvider>(
-          create: (context) => _FingerAnimationProvider(
-            animationController: _fingerAnimationController,
-            onComplete: _onImageInputTap,
-          ),
-          builder: (context, value) => Stack(
-            clipBehavior: Clip.none,
-            children: [
-              ..._buildFirstLeaf(),
-              _buildLeaf(),
-              Image.asset(
-                _getBgImage(widget.word, context),
-                width: 160,
-                height: 66,
-              ),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            ..._buildFirstLeaf(),
+            _buildLeaf(),
+            Image.asset(
+              _getBgImage(widget.word, context),
+              width: 160,
+              height: 66,
+            ),
+            if (_isShowFinger())
               Positioned(
                 height: 100,
                 width: 100,
                 left: 49,
                 top: 5,
-                child: _LottieFingerAnimation(
-                  animationController: _fingerAnimationController,
+                child: Lottie.asset(
+                  'assets/animations/finger_animation.json',
+                  repeat: true,
                 ),
               ),
-              if (widget.word.state == WordState.correct)
-                Positioned(
-                  top: 0,
-                  left: 22,
-                  right: 22,
-                  child: Container(
-                    padding:
-                        const EdgeInsets.only(left: 12, right: 12, top: 16),
-                    height: 50,
-                    child: Center(
-                      child: Text(
-                        widget.word.word.capitalize(),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: ThemeText.wordItemCorrect.merge(
-                            TextStyle(fontSize: _isCorrectWordLong ? 12 : 16)),
-                        textAlign: TextAlign.center,
-                      ),
+            if (widget.word.state == WordState.correct)
+              Positioned(
+                top: 0,
+                left: 22,
+                right: 22,
+                child: Container(
+                  padding: const EdgeInsets.only(left: 12, right: 12, top: 16),
+                  height: 50,
+                  child: Center(
+                    child: Text(
+                      widget.word.word.capitalize(),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: ThemeText.wordItemCorrect.merge(
+                          TextStyle(fontSize: _isCorrectWordLong ? 12 : 16)),
+                      textAlign: TextAlign.center,
                     ),
                   ),
                 ),
-              if (showInput)
-                if (showImageInput)
-                  Positioned(
-                    top: 10,
-                    left: 22,
-                    right: 22,
-                    child: GestureDetector(
-                      onTap: () {
-                        if (context
-                            .read<GameViewModel>()
-                            .showWrongAnswerDialog) {
-                          wrongAnswer();
-                          return;
-                        }
-                        FocusScope.of(context).requestFocus(FocusNode());
-                        Provider.of<AreaScreenProvider>(
-                          context,
-                          listen: false,
-                        ).isWordsInteractive = false;
-                        if (widget.showFinger) {
-                          Provider.of<_FingerAnimationProvider>(
-                            context,
-                            listen: false,
-                          ).onSelect();
-                        } else {
-                          _onImageInputTap();
-                        }
-                      },
-                      child: const SizedBox(
-                        height: 48,
-                        child: Text(''),
-                      ),
-                    ),
-                  )
-                else
-                  Positioned(
-                    top: 10,
-                    left: 22,
-                    right: 22,
-                    child: TextField(
-                      controller: _textController,
-                      focusNode: _wordFocusNode,
-                      keyboardType: TextInputType.text,
-                      onChanged: (value) {
+              ),
+            if (showInput)
+              if (showImageInput)
+                Positioned(
+                  top: 10,
+                  left: 22,
+                  right: 22,
+                  child: GestureDetector(
+                    onTap: () {
+                      if (context.read<GameViewModel>().showWrongAnswerDialog) {
                         wrongAnswer();
-                      },
-                      onTap: wrongAnswer,
-                      textAlign: TextAlign.center,
-                      scrollPadding: const EdgeInsets.only(bottom: 80),
-                      style: widget.word.state == WordState.correct
-                          ? ThemeText.wordItemCorrect
-                          : ThemeText.wordItemInput,
-                      onSubmitted: (value) {
-                        final vm = context.read<GameViewModel>();
-                        if (!vm.checkWord(
-                                word: widget.word,
-                                value: value,
-                                ctx: context) &&
-                            value.isNotEmpty) {
-                          _textController.clear();
-                          _wordFocusNode.requestFocus();
-                          _shakeKey.currentState?.shake();
-                        } else {
-                          _wordFocusNode.unfocus();
-                        }
-                      },
-                      decoration: const InputDecoration(
-                        prefixStyle: TextStyle(
-                          color: Colors.black,
-                        ),
-                        border: InputBorder.none,
-                      ),
+                        return;
+                      }
+                      FocusScope.of(context).requestFocus(FocusNode());
+                      Provider.of<FingerAnimationProvider>(
+                        context,
+                        listen: false,
+                      ).isFingerAnimationPlaying = false;
+                      _onImageInputTap();
+                    },
+                    child: const SizedBox(
+                      height: 48,
+                      child: Text(''),
                     ),
-                  )
-            ],
-          ),
+                  ),
+                )
+              else
+                Positioned(
+                  top: 10,
+                  left: 22,
+                  right: 22,
+                  child: TextField(
+                    controller: _textController,
+                    focusNode: _wordFocusNode,
+                    keyboardType: TextInputType.text,
+                    onChanged: (value) {
+                      wrongAnswer();
+                    },
+                    onTap: wrongAnswer,
+                    textAlign: TextAlign.center,
+                    scrollPadding: const EdgeInsets.only(bottom: 80),
+                    style: widget.word.state == WordState.correct
+                        ? ThemeText.wordItemCorrect
+                        : ThemeText.wordItemInput,
+                    onSubmitted: (value) {
+                      final vm = context.read<GameViewModel>();
+                      if (!vm.checkWord(
+                              word: widget.word, value: value, ctx: context) &&
+                          value.isNotEmpty) {
+                        _textController.clear();
+                        _wordFocusNode.requestFocus();
+                        _shakeKey.currentState?.shake();
+                      } else {
+                        _wordFocusNode.unfocus();
+                      }
+                    },
+                    decoration: const InputDecoration(
+                      prefixStyle: TextStyle(
+                        color: Colors.black,
+                      ),
+                      border: InputBorder.none,
+                    ),
+                  ),
+                )
+          ],
         ),
       ),
     );
@@ -325,10 +300,15 @@ class _WordItemState extends State<WordItem> with TickerProviderStateMixin {
         vm: context.read<GameViewModel>(),
       ),
     ).then(
-      (value) => Provider.of<AreaScreenProvider>(
+      (value) => Provider.of<FingerAnimationProvider>(
         context,
         listen: false,
-      ).isWordsInteractive = true,
+      ).isFingerAnimationPlaying = true,
     );
   }
+
+  bool _isShowFinger() =>
+      widget.showFinger &&
+      widget.word.state != WordState.correct &&
+      context.watch<FingerAnimationProvider>().isFingerAnimationPlaying;
 }

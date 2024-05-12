@@ -12,6 +12,7 @@ class ScoreBar extends StatelessWidget {
   final bool showBack;
   final bool showLevel;
   final Function? onBackTap;
+  final VoidCallback? changeAnimationStatusCallBack;
   final String? prevScreen;
 
   const ScoreBar({
@@ -20,6 +21,7 @@ class ScoreBar extends StatelessWidget {
     this.showBack = true,
     this.showLevel = false,
     this.onBackTap,
+    this.changeAnimationStatusCallBack,
     this.prevScreen,
   }) : super(key: key);
 
@@ -75,6 +77,7 @@ class ScoreBar extends StatelessWidget {
                   'level': ctx.read<GameViewModel>().getLevelIndex(),
                   'screen': prevScreen ?? '',
                 });
+                changeAnimationStatusCallBack?.call();
                 showDialog(
                   context: ctx,
                   barrierColor: Colors.black38,
@@ -83,6 +86,7 @@ class ScoreBar extends StatelessWidget {
                     child: const ShopDialog(),
                   ),
                 ).then((value) {
+                  changeAnimationStatusCallBack?.call();
                   analytics.fireEventWithMap(
                       AnalyticsEvents.onMonetizationWindowClose, {
                     'level_id': ctx.read<GameViewModel>().activeLevel.id,
