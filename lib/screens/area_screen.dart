@@ -107,6 +107,7 @@ class __NestedScrollState extends State<_NestedScroll> {
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<GameViewModel>();
+    print(vm.activeLevel.id);
     final groups = vm.groups;
 
     _ensureScroll(context);
@@ -185,7 +186,8 @@ class __NestedScrollState extends State<_NestedScroll> {
                                     showEndLeaf: showEndLeaf,
                                     showStartLeaf: showStartLeaf,
                                     showFinger: group.indexOf(word) == 0 &&
-                                        groups.indexOf(group) == 0,
+                                        groups.indexOf(group) == 0 &&
+                                        vm.getLevelIndex() == 1,
                                   ),
                                 );
                               })
